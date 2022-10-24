@@ -1,0 +1,44 @@
+services:
+  timescale_db:
+    image: timescale/timescaledb-ha:pg14-latest
+    container_name: timescale_db
+    hostname: timescale_db
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    volumes:
+        - timescale_data_volume:/var/lib/postgresql
+        - ./db-init-scripts:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: 'trust'
+      POSTGRES_DB: 'timescale_db'
+      POSTGRES_USER: 'postgres'
+    networks:
+      - timescale_network
+
+  bank_transactional_db_ui:
+    image: dpage/pgadmin4
+    container_name: timescale_db_ui
+    hostname: bank_transactional_db_ui
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "valverde.thiago@gmail.com"
+      PGADMIN_DEFAULT_PASSWORD: "t1m35c@13"
+    ports:
+      - "80:80"
+    volumes:
+      - timescale_data_ui_volume:/var/lib/pgadmin
+    links:
+      - timescale_db
+    networks:
+      - timescale_network
+
+volumes:
+  timescale_data_volume:
+    external: false
+  timescale_data_ui_volume:
+    external: false
+
+networks:
+  timescale_network:
+    driver: bridge
