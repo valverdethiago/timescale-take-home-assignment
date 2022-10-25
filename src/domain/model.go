@@ -12,27 +12,23 @@ type Interval struct {
 	EndTime   string
 }
 
-type QueryExecutionResult struct {
-	Hostname string
-	Interval Interval
-	StartTs  time.Time
-	EndTs    time.Time
-	Elapsed  time.Duration
+type TaskExecutionMeter struct {
+	//Hostname    string
+	//Interval    Interval
+	StartTime   time.Time
+	EndTime     time.Time
+	TimeElapsed time.Duration
 }
 
-func NewQueryExecutionResult(hostname string, interval Interval) QueryExecutionResult {
-	result := QueryExecutionResult{
-		Hostname: hostname,
-		Interval: interval,
-	}
-	result.start()
-	return result
+func NewTaskExecutionMeter() TaskExecutionMeter {
+	return TaskExecutionMeter{}
 }
 
-func (queryExecutionResult *QueryExecutionResult) start() {
-	queryExecutionResult.StartTs = time.Now()
+func (taskExecutionMeter *TaskExecutionMeter) Start() {
+	taskExecutionMeter.StartTime = time.Now()
 }
-func (queryExecutionResult *QueryExecutionResult) End() {
-	queryExecutionResult.EndTs = time.Now()
-	queryExecutionResult.Elapsed = time.Since(queryExecutionResult.StartTs)
+
+func (taskExecutionMeter *TaskExecutionMeter) End() {
+	taskExecutionMeter.EndTime = time.Now()
+	taskExecutionMeter.TimeElapsed = time.Since(taskExecutionMeter.StartTime)
 }

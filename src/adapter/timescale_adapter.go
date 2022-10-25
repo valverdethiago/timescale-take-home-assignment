@@ -1,4 +1,4 @@
-package db
+package adapter
 
 import (
 	"database/sql"
@@ -15,34 +15,32 @@ const (
 		"                   GROUP BY every_min"
 )
 
-type DbConnector struct {
+type TimescaleAdapter struct {
 	db *sql.DB
 }
 
-func NewDbConnector(config config.AppConfig) DbConnector {
+func NewTimescaleAdapter(config config.AppConfig) domain.DbConnector {
 	db, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return DbConnector{db: db}
+	return &TimescaleAdapter{db: db}
 }
 
-func (connector *DbConnector) ExecuteQuery(hostname string, interval domain.Interval) domain.QueryExecutionResult {
-	stmt, err := connector.db.Prepare(DefaultQuery)
+func (adapter *TimescaleAdapter) ExecuteQuery(hostname string, startTime string, endTime string) error {
+	stmt, err := adapter.db.Prepare(DefaultQuery)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	qer := domain.NewQueryExecutionResult(hostname, interval)
-	rows, err := stmt.Query(interval.StartTime, interval.EndTime, hostname)
+	rows, err := stmt.Query(startTime, endTime, hostname)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	qer.End()
 	defer rows.Close()
 	defer stmt.Close()
-	return qer
+	return nil
 }
 
-func (connector *DbConnector) CloseConnection() {
-	connector.db.Close()
+func (adapter *TimescaleAdapter) CloseConnection() {
+	adapter.db.Close()
 }
