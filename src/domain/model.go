@@ -12,23 +12,21 @@ type Interval struct {
 	EndTime   string
 }
 
-type TaskExecutionMeter struct {
-	//Hostname    string
-	//Interval    Interval
+type TaskExecutionLogger struct {
 	StartTime   time.Time
 	EndTime     time.Time
 	TimeElapsed time.Duration
 }
 
-func NewTaskExecutionMeter() TaskExecutionMeter {
-	return TaskExecutionMeter{}
+func NewTaskExecutionMeter() TaskExecutionLogger {
+	return TaskExecutionLogger{}
 }
 
-func (taskExecutionMeter *TaskExecutionMeter) Start() {
+func (taskExecutionMeter *TaskExecutionLogger) Start() {
 	taskExecutionMeter.StartTime = time.Now()
 }
 
-func (taskExecutionMeter *TaskExecutionMeter) End() {
+func (taskExecutionMeter *TaskExecutionLogger) End() {
 	taskExecutionMeter.EndTime = time.Now()
 	taskExecutionMeter.TimeElapsed = time.Since(taskExecutionMeter.StartTime)
 }

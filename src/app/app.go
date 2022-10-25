@@ -26,17 +26,13 @@ func NewApp(workersNumber int, filePath string, config config.AppConfig, dbConne
 	}
 }
 
-func (app *App) Process() domain.TaskExecutionMeter {
+func (app *App) Process() domain.ResultsCollector {
 	hostIntervalMap, err := app.readFile()
 	if err != nil {
 		log.Fatal(err)
 	}
 	app.createWorkersPool(*hostIntervalMap)
-	generalTaskMeter := domain.NewTaskExecutionMeter()
-	generalTaskMeter.Start()
-	app.startProcessing()
-	generalTaskMeter.End()
-	return generalTaskMeter
+	return app.startProcessing()
 }
 
 func (app *App) createWorkersPool(hostIntervalMap map[string][]domain.Interval) {
@@ -74,11 +70,19 @@ func (app *App) readFile() (*map[string][]domain.Interval, error) {
 	return fileReader.Result, nil
 }
 
-func (app *App) startProcessing() {
+func (app *App) startProcessing() domain.ResultsCollector {
 	var waitGroup sync.WaitGroup
+	globalTaskExecutionMeter := domain.NewTaskExecutionMeter()
+	workerResults := make(chan []domain.TaskExecutionLogger)
 	waitGroup.Add(len(app.workers))
+	globalTaskExecutionMeter.Start()
 	for _, worker := range app.workers {
-		go worker.Process(&waitGroup)
+		go worker.Process(&waitGroup, workerResults)
 	}
+	resultsCollector := domain.NewResultsCollector(workerResults)
+	go resultsCollector.CollectResults()
 	waitGroup.Wait()
+	globalTaskExecutionMeter.End()
+	resultsCollector.SetGlobalExecutionResult(globalTaskExecutionMeter)
+	return resultsCollector
 }

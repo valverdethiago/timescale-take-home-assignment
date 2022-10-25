@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"log"
 	"sync"
 )
@@ -11,32 +12,33 @@ type Task struct {
 }
 
 type Worker struct {
-	ID              int
+	ID              string
 	HostIntervalMap map[string][]Interval
 	dbConnector     DbConnector
 }
 
 func NewWorker(id int, dbConnector DbConnector) Worker {
 	return Worker{
-		ID:              id,
+		ID:              fmt.Sprintf("Worker-%d", id),
 		HostIntervalMap: make(map[string][]Interval),
 		dbConnector:     dbConnector,
 	}
 }
 
-func (worker *Worker) Process(waitGroup *sync.WaitGroup) {
-	workerTaskMeter := NewTaskExecutionMeter()
-	workerTaskMeter.Start()
+func (worker *Worker) Process(waitGroup *sync.WaitGroup, state chan<- []TaskExecutionLogger) {
+	var results []TaskExecutionLogger
 	for hostname := range worker.HostIntervalMap {
 		for _, interval := range worker.HostIntervalMap[hostname] {
 			intervalTaskMeter := NewTaskExecutionMeter()
 			intervalTaskMeter.Start()
-			worker.dbConnector.ExecuteQuery(hostname, interval.StartTime, interval.EndTime)
+			err := worker.dbConnector.ExecuteQuery(hostname, interval.StartTime, interval.EndTime)
+			if err != nil {
+				log.Println(err)
+			}
 			intervalTaskMeter.End()
-			log.Println("intervalTaskMeter: ", intervalTaskMeter)
+			results = append(results, intervalTaskMeter)
 		}
 	}
-	workerTaskMeter.End()
-	log.Println("workerTaskMeter: ", workerTaskMeter)
+	state <- results
 	waitGroup.Done()
 }
