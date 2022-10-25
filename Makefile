@@ -15,7 +15,7 @@ test:
 
 build:
 	cd src;\
-	go build -o ../docker/bin/timescale-take-home-assignment
+	go build -o ../timescale-take-home-assignment
 
 run:
 	cd src;\
