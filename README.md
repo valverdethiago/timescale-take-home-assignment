@@ -4,7 +4,7 @@
 ## Description
 This project aims to purpose a solution for the benchmaking problem proposed as a 
 take home assignment for a Cloud Engineer position at [Timescale](https://www.timescale.com/)
-The full problem description can be found [here](./README.md)
+The full problem description can be found [here](./docs/PROBLEM.md)
 
 ## Solution
 This software was written in [go lang](https://go.dev/) (version 1.19) and uses docker containers to 
